@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,81 +12,63 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DateTimePicker } from "./DateTimePicker";
+import { useToast } from "@/hooks/use-toast";
 
 interface Log {
   startTime: string;
-  endTime: string;
   activity: string;
 }
 
 export default function TimeLog() {
   const [logs, setLogs] = useState<Log[]>([]);
+  const [newLog, setNewLog] = useState<Log>({
+    startTime: new Date(),
+    activity: "",
+  });
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  // const [endTime, setEndTime] = useState("");
   const [activity, setActivity] = useState("");
+  const { toast } = useToast();
 
-  // 加载 localStorage 日志数据
-  useEffect(() => {
-    const storedLogs = JSON.parse(localStorage.getItem("logs") || "[]");
-    setLogs(storedLogs);
-  }, []);
-
-  // 更新 localStorage
-  const updateLocalStorage = (newLogs: Log[]) => {
-    localStorage.setItem("logs", JSON.stringify(newLogs));
+  const handleStartTimeChange = (date: Date | undefined) => {
+    console.log("selected Date:", date);
+    toast({
+      title: "Scheduled: Catch up",
+      description: "Friday, February 10, 2023 at 5:57 PM",
+    });
+    setStartTime(date ? date.toISOString() : "");
   };
 
   // 添加日志
   const addLog = () => {
-    if ((!startTime && !endTime) || !activity) {
-      alert("请填写所有字段！");
+    if (!startTime || !activity) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all fields",
+      });
       return;
     }
 
-    const newLog = { startTime, endTime, activity };
-    const updatedLogs = [...logs, newLog];
-    setLogs(updatedLogs);
-    updateLocalStorage(updatedLogs);
+    const newLog: Log = {
+      startTime,
+      activity,
+    };
 
-    // 清空表单
+    setLogs([...logs, newLog]);
+
     setStartTime("");
-    setEndTime("");
     setActivity("");
+
+    toast({
+      title: "Success",
+      description: "Log added successfully",
+    });
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>添加时间日志</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              placeholder="开始时间"
-            />
-            <Input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              placeholder="结束时间"
-            />
-            <Input
-              type="text"
-              value={activity}
-              onChange={(e) => setActivity(e.target.value)}
-              placeholder="活动描述"
-            />
-            <Button onClick={addLog} className="w-full">
-              添加日志
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>时间日志记录</CardTitle>
@@ -110,6 +92,25 @@ export default function TimeLog() {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>添加时间日志</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <DateTimePicker onChange={handleStartTimeChange} />
+            <Input
+              type="text"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+              placeholder="活动描述"
+            />
+            <Button onClick={addLog} className="w-full">
+              添加日志
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

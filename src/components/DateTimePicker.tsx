@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-export function DateTimePicker() {
+interface DateTimePickerProps {
+  onChange?: (date: Date | undefined) => void;
+}
+
+export function DateTimePicker({ onChange }: DateTimePickerProps) {
   const [date, setDate] = React.useState<Date>();
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -22,6 +26,15 @@ export function DateTimePicker() {
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
+    } else {
+      const currentDate = new Date();
+      if (date) {
+        // Preserve the existing time when setting new date
+        currentDate.setHours(date.getHours());
+        currentDate.setMinutes(date.getMinutes());
+      }
+      setDate(currentDate);
+      onChange?.(selectedDate);
     }
   };
 
@@ -44,6 +57,7 @@ export function DateTimePicker() {
         );
       }
       setDate(newDate);
+      onChange?.(newDate);
     }
   };
 
